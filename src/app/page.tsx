@@ -9,6 +9,7 @@ import { TechMarquee } from "@/components/TechMarquee";
 import { Button } from "@/components/ui/button";
 import { getEvents, getFaqs, getSponsors, getStories, getTeam } from "@/lib/data";
 import { site } from "@/lib/site";
+import type { GdgEvent } from "@/lib/types";
 
 export const revalidate = 300;
 
@@ -40,10 +41,10 @@ export default async function Home() {
         <ShapeLayer>
           {/* Left-edge shape lives in the page margin, which is only wide enough from xl up. */}
           <Shape kind="triangle" color="blue" className="bottom-[22%] left-[0.75%] hidden w-14 animate-float [--r:-12deg] xl:block" />
-          <Shape kind="arc" color="yellow" className="right-[1%] top-[8%] w-20 animate-spin-slow" />
+          <Shape kind="arc" color="yellow" className="right-[1%] top-[16%] w-20 animate-spin-slow" />
           <Shape kind="plus" color="green" className="bottom-[6%] right-[2%] w-10 animate-spin-slower" />
         </ShapeLayer>
-      <section className="container grid items-center gap-12 py-16 md:py-24 lg:grid-cols-[1.15fr_1fr]">
+      <section className="container grid items-center gap-12 pb-16 pt-28 md:pb-24 md:pt-36 lg:grid-cols-[1.15fr_1fr]">
         <div data-reveal>
           <p className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-sm text-muted">
             <span className="size-2 rounded-full bg-g-green" />
@@ -65,7 +66,7 @@ export default async function Home() {
             </Button>
           </div>
         </div>
-        <HeroArt />
+        <HeroArt event={upcoming[0]} />
       </section>
       </div>
 
@@ -154,7 +155,7 @@ export default async function Home() {
             >
               <Shape kind="circle" color="none" className="-right-10 -top-10 -z-10 w-40 stroke-white/40" />
               <blockquote className="font-display text-2xl font-medium leading-snug md:text-3xl">“{story.quote}”</blockquote>
-              <figcaption className="mt-8 flex items-center gap-4">
+              <figcaption className="glass glass-on-color relative mt-8 flex items-center gap-4 self-start rounded-full py-2 pl-2 pr-6">
                 {story.image && (
                   <div className="relative size-12 overflow-hidden rounded-full ring-2 ring-white/60">
                     <Image src={story.image} alt="" fill sizes="48px" className="object-cover" />
@@ -219,44 +220,81 @@ export default async function Home() {
 
       {/* CTA */}
       <Section className="pt-0 md:pt-0">
-        <div data-reveal className="relative isolate overflow-hidden rounded-4xl bg-surface-2 px-6 py-14 text-center md:px-16">
+        <div
+          data-reveal
+          className="relative isolate overflow-hidden rounded-4xl bg-surface-2 px-4 py-12 md:px-16 md:py-16"
+          style={{
+            // Static colour blobs for the glass to refract — gradients, not blurred elements, so they cost nothing.
+            backgroundImage: [
+              "radial-gradient(circle at 12% 20%, rgb(var(--g-blue) / 0.55), transparent 32%)",
+              "radial-gradient(circle at 88% 18%, rgb(var(--g-red) / 0.45), transparent 30%)",
+              "radial-gradient(circle at 22% 88%, rgb(var(--g-yellow) / 0.55), transparent 32%)",
+              "radial-gradient(circle at 82% 85%, rgb(var(--g-green) / 0.5), transparent 32%)",
+            ].join(","),
+          }}
+        >
+          {/* Moving shapes stay at the edges, outside the glass panel. */}
           <ShapeLayer>
-            <Shape kind="circle" color="blue" className="-left-6 -top-6 w-28" />
-            <Shape kind="square" color="red" className="bottom-6 left-[8%] w-12 rotate-12" />
-            <Shape kind="triangle" color="yellow" className="right-[7%] top-8 w-16 animate-float [--r:20deg]" />
-            <Shape kind="arc" color="green" className="-bottom-4 -right-4 w-28 animate-spin-slower" />
+            <Shape kind="triangle" color="yellow" className="right-[4%] top-8 w-14 animate-float [--r:20deg]" />
+            <Shape kind="arc" color="green" className="-bottom-4 -left-4 w-24 animate-spin-slower" />
           </ShapeLayer>
-          <div aria-hidden className="absolute inset-x-0 top-0 flex h-1.5">
-            <span className="flex-1 bg-g-blue" />
-            <span className="flex-1 bg-g-red" />
-            <span className="flex-1 bg-g-yellow" />
-            <span className="flex-1 bg-g-green" />
+          <div className="glass relative mx-auto max-w-2xl rounded-4xl px-6 py-10 text-center md:px-12">
+            <h2 className="font-display text-3xl font-medium tracking-tight md:text-4xl">Ready to start building?</h2>
+            <p className="mx-auto mt-3 max-w-xl text-muted">
+              Join the chapter on the GDG community platform to RSVP for events and stay in the loop.
+            </p>
+            <Button asChild size="lg" className="mt-8">
+              <a href={site.chapterUrl} target="_blank" rel="noreferrer">
+                Join GDG On Campus BIET <ArrowRight />
+              </a>
+            </Button>
           </div>
-          <h2 className="font-display text-3xl font-medium tracking-tight md:text-4xl">Ready to start building?</h2>
-          <p className="mx-auto mt-3 max-w-xl text-muted">
-            Join the chapter on the GDG community platform to RSVP for events and stay in the loop.
-          </p>
-          <Button asChild size="lg" className="mt-8">
-            <a href={site.chapterUrl} target="_blank" rel="noreferrer">
-              Join GDG On Campus BIET <ArrowRight />
-            </a>
-          </Button>
         </div>
       </Section>
     </>
   );
 }
 
-/** Google-colour shape composition; sits inside the grid, so it never overlaps content. Static on purpose. */
-function HeroArt() {
+/**
+ * Google-colour shape composition with a glass "next up" card floating over it.
+ * The tiles are static on purpose: the glass blurs whatever is behind it, and
+ * a still backdrop keeps that cheap.
+ */
+function HeroArt({ event }: { event?: GdgEvent }) {
   return (
-    <div aria-hidden className="mx-auto grid aspect-square w-full max-w-[16rem] grid-cols-2 grid-rows-2 gap-3 sm:max-w-sm sm:gap-4 lg:max-w-none">
-      <div className="rounded-full bg-g-blue" />
-      <div className="rounded-[2.5rem] rounded-tr-full bg-g-red" />
-      <div className="grid place-items-center rounded-[2.5rem] bg-g-yellow">
-        <span className="font-display text-6xl font-semibold text-[#202124] md:text-7xl">{"</>"}</span>
+    <div className="relative mx-auto w-full max-w-[16rem] sm:max-w-sm lg:max-w-none">
+      <div aria-hidden className="grid aspect-square grid-cols-2 grid-rows-2 gap-3 sm:gap-4">
+        <div className="rounded-full bg-g-blue" />
+        <div className="rounded-[2.5rem] rounded-tr-full bg-g-red" />
+        <div className="grid place-items-center rounded-[2.5rem] bg-g-yellow">
+          <span className="font-display text-6xl font-semibold text-[#202124] md:text-7xl">{"</>"}</span>
+        </div>
+        <div className="rounded-full rounded-bl-[2.5rem] bg-g-green" />
       </div>
-      <div className="rounded-full rounded-bl-[2.5rem] bg-g-green" />
+
+      <div className="glass absolute inset-x-4 top-1/2 hidden -translate-y-1/2 rounded-3xl p-5 sm:block lg:inset-x-8">
+        <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-muted">
+          <span className="relative flex size-2">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-g-green opacity-60 motion-reduce:hidden" />
+            <span className="relative inline-flex size-2 rounded-full bg-g-green" />
+          </span>
+          {event ? "Next up" : "Join us"}
+        </p>
+        <p className="mt-2 font-display text-xl font-medium leading-snug">{event ? event.title : "Be first to hear about new events"}</p>
+        <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+          <span className="text-muted">
+            {event ? (event.date ? new Date(event.date).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "Date to be announced") : "GDG community platform"}
+          </span>
+          <a
+            href={event?.registerUrl ?? site.chapterUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+          >
+            {event ? "Register" : "Join"} <ArrowRight className="size-4" />
+          </a>
+        </div>
+      </div>
     </div>
   );
 }

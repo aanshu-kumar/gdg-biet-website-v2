@@ -22,10 +22,10 @@ export function EventCard({ event }: { event: GdgEvent }) {
         )}
         <span
           className={
-            "absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-medium " +
-            (event.status === "upcoming" ? "bg-g-green-tint text-fg" : "bg-surface text-muted")
+            "glass absolute left-4 top-4 flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-fg [--glass-blur:12px]"
           }
         >
+          <span className={"size-1.5 rounded-full " + (event.status === "upcoming" ? "bg-g-green" : "bg-muted")} />
           {event.status === "upcoming" ? "Upcoming" : "Past event"}
         </span>
       </div>
