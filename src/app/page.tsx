@@ -7,9 +7,10 @@ import { EmptyState, Section, SectionHeader } from "@/components/Section";
 import { Shape, ShapeLayer } from "@/components/Shapes";
 import { TechMarquee } from "@/components/TechMarquee";
 import { Button } from "@/components/ui/button";
-import { getEvents, getFaqs, getSponsors, getStories, getTeam } from "@/lib/data";
+import { getEvents, getFaqs, getSponsors, getStories, getTeamSessions } from "@/lib/data";
 import { site } from "@/lib/site";
 import type { GdgEvent } from "@/lib/types";
+import { TIME_ZONE } from "@/lib/time";
 
 export const revalidate = 300;
 
@@ -21,17 +22,26 @@ const pillars = [
 ];
 
 export default async function Home() {
-  const [events, faqs, sponsors, stories, team] = await Promise.all([
+  const [events, faqs, sponsors, stories, sessions] = await Promise.all([
     getEvents(),
     getFaqs(),
     getSponsors(),
     getStories(),
-    getTeam(),
+    getTeamSessions(),
   ]);
   const upcoming = events.filter((e) => e.status === "upcoming").slice(0, 3);
-  const latestYear = Math.max(...team.map((m) => m.year));
-  const currentTeam = team.filter((m) => m.year === latestYear);
-  const avatars = currentTeam.filter((m) => m.image).slice(0, 6);
+  const session = sessions.find((s) => s.isCurrent) ?? sessions[0];
+  const teamPeople: { id: string; name: string; image: string | null }[] = !session
+    ? []
+    : session.kind === "roster"
+      ? [...session.club, ...session.departments.flatMap((d) => d.people)]
+      : session.members;
+  const avatars = teamPeople.filter((m) => m.image).slice(0, 6);
+  const teamSummary = !session
+    ? "Meet the students behind the chapter."
+    : session.kind === "roster"
+      ? `${teamPeople.length} leads across ${session.departments.length} departments for ${session.label}.`
+      : `${teamPeople.length} organizers across tech, design, content, events and outreach for ${session.label}.`;
   const story = stories[0];
 
   return (
@@ -128,7 +138,7 @@ export default async function Home() {
               <p className="eyebrow">The team</p>
               <h2 className="mt-3 font-display text-3xl font-medium tracking-tight">Run by students who love to build</h2>
               <p className="mt-3 text-muted">
-                {currentTeam.length} organizers across tech, design, content, events and outreach for {latestYear}–{String(latestYear + 1).slice(2)}.
+                {teamSummary}
               </p>
             </div>
             <div className="mt-8 flex flex-wrap items-center justify-between gap-6">
@@ -283,7 +293,7 @@ function HeroArt({ event }: { event?: GdgEvent }) {
         <p className="mt-2 font-display text-xl font-medium leading-snug">{event ? event.title : "Be first to hear about new events"}</p>
         <div className="mt-3 flex items-center justify-between gap-3 text-sm">
           <span className="text-muted">
-            {event ? (event.date ? new Date(event.date).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "Date to be announced") : "GDG community platform"}
+            {event ? (event.date ? new Date(event.date).toLocaleDateString("en-IN", { timeZone: TIME_ZONE, day: "numeric", month: "short" }) : "Date to be announced") : "GDG community platform"}
           </span>
           <a
             href={event?.registerUrl ?? site.chapterUrl}

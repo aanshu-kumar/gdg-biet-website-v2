@@ -22,6 +22,7 @@ const columns = [
     links: [
       { href: site.githubUrl, label: "View source" },
       { href: `${site.githubUrl}/issues/new`, label: "Report a bug" },
+      { href: "/login", label: "Team login" },
     ],
   },
 ];

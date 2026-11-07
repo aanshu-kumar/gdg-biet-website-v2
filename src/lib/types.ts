@@ -58,3 +58,36 @@ export type Story = {
   role: string | null;
   image: string | null;
 };
+
+export type RosterPerson = {
+  id: string;
+  name: string;
+  title: "lead" | "co_lead";
+  departmentName: string | null;
+  image: string | null;
+  bio: string | null;
+  linkedin: string | null;
+  twitter: string | null;
+  github: string | null;
+  website: string | null;
+};
+
+type SessionBase = { key: string; label: string; startYear: number; isCurrent: boolean };
+
+/** A Team page tab: leadership from the dashboard, or an older year's original list. */
+export type TeamSession =
+  | (SessionBase & { kind: "roster"; club: RosterPerson[]; departments: { id: string; name: string; people: RosterPerson[] }[] })
+  | (SessionBase & { kind: "legacy"; members: Member[] });
+
+export type BlogPost = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  body: string;
+  cover: string | null;
+  tags: string[];
+  publishedAt: string;
+  department: string | null;
+  author: { name: string; image: string | null } | null;
+};

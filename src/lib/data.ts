@@ -1,7 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { assetUrl, getSupabase } from "@/lib/supabase";
-import type { Faq, GdgEvent, Member, Project, Sponsor, Story } from "@/lib/types";
+import type { BlogPost, Faq, GdgEvent, Member, Project, RosterPerson, Sponsor, Story, TeamSession } from "@/lib/types";
 
 import localEvents from "@/data/events.json";
 import localTeam from "@/data/team.json";
@@ -45,7 +45,9 @@ export const getEvents = cache(() =>
     [{ column: "date", ascending: false }],
     (r) => ({
       id: r.id, title: r.title, description: r.description, date: r.date, location: r.location,
-      status: r.status, image: assetUrl(r.image_path), tags: r.tags ?? [],
+      // Dated events become "past" on their own once the date has gone by.
+      status: r.date ? (new Date(r.date) < new Date() ? "past" : "upcoming") : r.status,
+      image: assetUrl(r.image_path), tags: r.tags ?? [],
       registerUrl: r.register_url, resourcesUrl: r.resources_url,
     }),
     (localEvents as GdgEvent[]).map((e) => ({ ...e, image: assetUrl(e.image) })),
@@ -118,3 +120,109 @@ export const getStories = cache(() =>
     (localStories as Story[]).map((s) => ({ ...s, image: assetUrl(s.image) })),
   ),
 );
+
+// ------------------------------------------------------------- team page
+
+type RosterRow = {
+  session_id: number; session_name: string; start_year: number; is_current: boolean;
+  scope: "club" | "department"; title: "lead" | "co_lead";
+  department_id: string | null; department_name: string | null; department_sort: number | null;
+  person_id: string; full_name: string; avatar_path: string | null; bio: string | null;
+  linkedin_url: string | null; twitter_url: string | null; github_url: string | null; website_url: string | null;
+};
+
+const byTitle = (a: RosterPerson, b: RosterPerson) => (a.title === b.title ? 0 : a.title === "lead" ? -1 : 1);
+
+/**
+ * Sessions for the Team page, newest first. Sessions with positions assigned in
+ * the dashboard show club + department leadership; older years without any fall
+ * back to the original team list (team_members / team.json).
+ */
+export const getTeamSessions = cache(async (): Promise<TeamSession[]> => {
+  const supabase = getSupabase();
+  let roster: RosterRow[] = [];
+  if (supabase) {
+    const { data, error } = await supabase.rpc("team_roster");
+    if (error) console.error(`[data] team_roster: ${error.message}`);
+    else roster = data as RosterRow[];
+  }
+
+  const sessions = new Map<number, Extract<TeamSession, { kind: "roster" }>>();
+  const deptSort = new Map<string, number>();
+  for (const r of roster) {
+    let s = sessions.get(r.start_year);
+    if (!s) {
+      s = { kind: "roster", key: `s${r.session_id}`, label: r.session_name, startYear: r.start_year, isCurrent: r.is_current, club: [], departments: [] };
+      sessions.set(r.start_year, s);
+    }
+    const person: RosterPerson = {
+      id: r.person_id, name: r.full_name, title: r.title, departmentName: r.department_name,
+      image: assetUrl(r.avatar_path), bio: r.bio,
+      linkedin: r.linkedin_url, twitter: r.twitter_url, github: r.github_url, website: r.website_url,
+    };
+    if (r.scope === "club") s.club.push(person);
+    else {
+      let d = s.departments.find((x) => x.id === r.department_id);
+      if (!d) {
+        d = { id: r.department_id!, name: r.department_name ?? "", people: [] };
+        s.departments.push(d);
+        deptSort.set(d.id, r.department_sort ?? 0);
+      }
+      d.people.push(person);
+    }
+  }
+  for (const s of sessions.values()) {
+    s.club.sort(byTitle);
+    s.departments.sort((a, b) => (deptSort.get(a.id)! - deptSort.get(b.id)!) || a.name.localeCompare(b.name));
+    s.departments.forEach((d) => d.people.sort(byTitle));
+  }
+
+  const legacy = new Map<number, Member[]>();
+  for (const m of await getTeam()) {
+    if (sessions.has(m.year)) continue;
+    legacy.set(m.year, [...(legacy.get(m.year) ?? []), m]);
+  }
+
+  return [
+    ...sessions.values(),
+    ...[...legacy.entries()].map(([year, members]): TeamSession => ({
+      kind: "legacy", key: `y${year}`, label: `${year}–${String((year + 1) % 100).padStart(2, "0")}`,
+      startYear: year, isCurrent: false, members,
+    })),
+  ].sort((a, b) => b.startYear - a.startYear);
+});
+
+// ------------------------------------------------------------------ blog
+
+type BlogRow = {
+  id: string; slug: string; title: string; excerpt: string | null; body: string; cover_path: string | null;
+  tags: string[] | null; published_at: string; author_name: string | null; author_avatar_path: string | null;
+  department_name: string | null;
+};
+
+const toPost = (r: BlogRow): BlogPost => ({
+  id: r.id, slug: r.slug, title: r.title, excerpt: r.excerpt, body: r.body, cover: assetUrl(r.cover_path),
+  tags: r.tags ?? [], publishedAt: r.published_at, department: r.department_name,
+  author: r.author_name ? { name: r.author_name, image: assetUrl(r.author_avatar_path) } : null,
+});
+
+/** Published posts, newest first (bodies omitted). */
+export const getBlogPosts = cache(async (): Promise<BlogPost[]> => {
+  const supabase = getSupabase();
+  if (!supabase) return [];
+  const { data, error } = await supabase.rpc("blog_posts");
+  if (error) {
+    console.error(`[data] blog_posts: ${error.message}`);
+    return [];
+  }
+  return (data as BlogRow[]).map(toPost);
+});
+
+export const getBlogPost = cache(async (slug: string): Promise<BlogPost | null> => {
+  const supabase = getSupabase();
+  if (!supabase) return null;
+  const { data, error } = await supabase.rpc("blog_posts", { p_slug: slug });
+  if (error) console.error(`[data] blog_posts(${slug}): ${error.message}`);
+  const row = (data as BlogRow[] | null)?.[0];
+  return row ? toPost(row) : null;
+});
