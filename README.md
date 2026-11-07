@@ -68,6 +68,12 @@ Team members sign in with Google at `/login` and manage content at `/dashboard`.
    `insert into public.people (email, full_name, is_admin) values (lower('you@gmail.com'), 'Your Name', true);`
 4. Sign in, then in **Admin** create a session, add departments and assign leads. Invite people from **Members**.
 
+**Owner and alumni sessions.** `supabase/003_owner_and_legacy.sql` adds a chapter **owner** (`people.is_owner`, set only in
+SQL) and **legacy** sessions/alumni imported from the original site (`supabase/004_import_legacy_team.sql`). Only the
+owner can edit legacy sessions and alumni profiles; other admins can edit any non-legacy session, past or current.
+Assigning positions in a past session never changes anyone's current department. Admins can add past members without
+an email (profile only) and edit profiles of people they manage from **Members → Edit profile**.
+
 **Separate dashboard address (optional).** Set `SITE_URL` and `APP_URL` (e.g. `https://gdgcbiet-lucknow.vercel.app`
 and `https://gdgcbiet-lucknow-app.vercel.app`, both added as domains on the same Vercel project). The app address then
 serves only login and the dashboard, and the public site redirects `/login` and `/dashboard` there. Vercel previews and

@@ -12,7 +12,11 @@ export async function invitePerson(form: FormData) {
   const supabase = await createSessionClient();
 
   const email = text(form, "email", 200).toLowerCase();
-  if (!EMAIL.test(email)) flash(back, "error", "Enter a valid email address.");
+  const fullName = text(form, "full_name", 120);
+  // Admins may add past members without an email: a profile for the Team page that can't sign in.
+  if (!email && !viewer.isAdmin) flash(back, "error", "Enter their Google account email.");
+  if (!email && !fullName) flash(back, "error", "Without an email, enter at least a name.");
+  if (email && !EMAIL.test(email)) flash(back, "error", "Enter a valid email address.");
   const departmentId = text(form, "department_id") || null;
   const mayChooseAny = viewer.isAdmin || viewer.isClubLead;
   if (!mayChooseAny && (!departmentId || !viewer.ledDepartmentIds.includes(departmentId))) {
@@ -20,13 +24,13 @@ export async function invitePerson(form: FormData) {
   }
 
   const { error } = await supabase.from("people").insert({
-    email,
-    full_name: text(form, "full_name", 120),
+    email: email || null,
+    full_name: fullName,
     department_id: departmentId,
     is_admin: viewer.isAdmin && form.get("is_admin") === "on",
   });
   if (error) flash(back, "error", friendlyError(error.message));
-  flash(back, "ok", `Invited ${email}. They can now sign in with that Google account.`);
+  flash(back, "ok", email ? `Invited ${email}. They can now sign in with that Google account.` : `Added ${fullName} (profile only).`);
 }
 
 export async function updatePerson(form: FormData) {
@@ -55,6 +59,6 @@ export async function removeInvite(form: FormData) {
   await requireLead();
   const supabase = await createSessionClient();
   const { error, count } = await supabase.from("people").delete({ count: "exact" }).eq("id", text(form, "id")).is("user_id", null);
-  if (error || !count) flash(back, "error", error ? friendlyError(error.message) : "Only pending invites you manage can be removed.");
-  flash(back, "ok", "Invite removed.");
+  if (error || !count) flash(back, "error", error ? friendlyError(error.message) : "Only people who haven't signed in, and whom you manage, can be removed.");
+  flash(back, "ok", "Removed.");
 }

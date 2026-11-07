@@ -13,6 +13,8 @@ export type Viewer = {
   avatarPath: string | null;
   departmentId: string | null;
   isAdmin: boolean;
+  /** Chapter owner: the only one who can edit legacy (imported) sessions and alumni. */
+  isOwner: boolean;
   isClubLead: boolean;
   ledDepartmentIds: string[];
   /** Highest role, for display. Capabilities come from the flags above. */
@@ -27,6 +29,7 @@ type MyContext = {
     email: string;
     full_name: string;
     is_admin: boolean;
+    is_owner?: boolean;
     department_id: string | null;
     avatar_path: string | null;
   } | null;
@@ -59,6 +62,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
     avatarPath: ctx.person.avatar_path,
     departmentId: ctx.person.department_id,
     isAdmin: ctx.person.is_admin,
+    isOwner: ctx.person.is_owner === true,
     isClubLead: ctx.is_club_lead,
     ledDepartmentIds: ctx.led_department_ids,
     isLead,

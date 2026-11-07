@@ -1,3 +1,4 @@
+import { Lock } from "lucide-react";
 import { Card, Field, Flash, PageTitle, inputClass } from "@/components/dashboard/ui";
 import { ConfirmButton, SubmitButton } from "@/components/dashboard/SubmitButton";
 import { requireAdmin } from "@/lib/auth";
@@ -6,18 +7,18 @@ import { createSessionClient } from "@/lib/supabase-session";
 import { cn } from "@/lib/utils";
 import { createSession, deleteDepartment, saveDepartment, savePositions, setCurrentSession } from "./actions";
 
-type Session = { id: number; name: string; start_year: number; is_current: boolean };
+type Session = { id: number; name: string; start_year: number; is_current: boolean; is_legacy: boolean };
 type Position = { person_id: string; scope: "club" | "department"; title: "lead" | "co_lead"; department_id: string | null };
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<{ session?: string; ok?: string; error?: string }> }) {
-  await requireAdmin();
+  const viewer = await requireAdmin();
   const { session: sessionParam, ok, error } = await searchParams;
   const supabase = await createSessionClient();
 
   const [{ data: sessions }, { data: departments }, { data: people }] = await Promise.all([
     supabase.from("sessions").select("*").order("start_year", { ascending: false }).returns<Session[]>(),
     supabase.from("departments").select("*").order("sort_order").order("name").returns<Department[]>(),
-    supabase.from("people").select("id, full_name, email, is_active").eq("is_active", true).order("full_name").returns<Pick<PersonRow, "id" | "full_name" | "email" | "is_active">[]>(),
+    supabase.from("people").select("id, full_name, email, is_active, is_legacy").eq("is_active", true).order("full_name").returns<Pick<PersonRow, "id" | "full_name" | "email" | "is_active" | "is_legacy">[]>(),
   ]);
 
   const selected = sessions?.find((s) => String(s.id) === sessionParam) ?? sessions?.find((s) => s.is_current) ?? sessions?.[0];
@@ -25,13 +26,23 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     ? await supabase.from("positions").select("person_id, scope, title, department_id").eq("session_id", selected.id).returns<Position[]>()
     : { data: [] as Position[] };
 
+  // Legacy (imported) sessions are owner-only; the database enforces this too.
+  const locked = !!selected?.is_legacy && !viewer.isOwner;
+  // Show every department that holds a position in this session, even if since deactivated,
+  // so saving never silently drops an old assignment.
+  const usedDepts = new Set((positions ?? []).map((p) => p.department_id).filter(Boolean));
+  const slotDepartments = (departments ?? []).filter((d) => d.is_active || usedDepts.has(d.id));
+  // Alumni only appear as choices for legacy sessions.
+  const choices = (people ?? []).filter((p) => selected?.is_legacy || !p.is_legacy);
+  const nameOf = new Map((people ?? []).map((p) => [p.id, p.full_name || p.email]));
+
   const holder = (scope: "club" | "department", title: "lead" | "co_lead", dept: string | null = null) =>
     positions?.find((p) => p.scope === scope && p.title === title && p.department_id === dept)?.person_id ?? "";
 
   const PersonSelect = ({ name, value }: { name: string; value: string }) => (
     <select name={name} defaultValue={value} className={inputClass}>
       <option value="">— Vacant —</option>
-      {(people ?? []).map((p) => (
+      {choices.map((p) => (
         <option key={p.id} value={p.id}>
           {p.full_name || p.email}
         </option>
@@ -61,6 +72,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             >
               {s.name}
               {s.is_current && <span className="ml-2 rounded-full bg-g-green-tint px-2 py-0.5 text-xs text-fg">Current</span>}
+              {s.is_legacy && <span className="ml-2 rounded-full bg-surface-2 px-2 py-0.5 text-xs text-fg">Alumni</span>}
             </a>
           ))}
         </div>
@@ -74,7 +86,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             </label>
             <SubmitButton variant="tonal">Create session</SubmitButton>
           </form>
-          {selected && !selected.is_current && (
+          {selected && !selected.is_current && !selected.is_legacy && (
             <form action={setCurrentSession} className="ml-auto">
               <input type="hidden" name="session_id" value={selected.id} />
               <SubmitButton variant="outlined">Make {selected.name} current</SubmitButton>
@@ -88,9 +100,29 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         <Card className="mb-6">
           <h2 className="font-display text-xl font-medium">Leadership for {selected.name}</h2>
           <p className="mt-1 text-sm text-muted">
-            These people appear on the public Team page. In the current session they also get lead permissions. Assigning a department lead moves them into that department.
+            {selected.is_legacy
+              ? "Imported from the original website. Shown on the Team page for this year."
+              : selected.is_current
+                ? "These people appear on the public Team page and get lead permissions. Assigning a department lead moves them into that department."
+                : "A past session: these people appear on the Team page for this year. Assignments here don't change anyone's current role or department."}
           </p>
-          {(people ?? []).length === 0 ? (
+          {locked ? (
+            <div className="mt-5 space-y-3">
+              <p className="flex items-center gap-2 rounded-2xl bg-surface-2 px-4 py-3 text-sm text-muted">
+                <Lock className="size-4" /> Only the chapter owner can edit alumni sessions imported from the original website.
+              </p>
+              <ul className="grid gap-2 text-sm sm:grid-cols-2">
+                {(positions ?? []).map((p) => (
+                  <li key={`${p.scope}-${p.department_id}-${p.title}`} className="rounded-xl border border-line px-3 py-2">
+                    <span className="text-muted">
+                      {p.scope === "club" ? "Club" : slotDepartments.find((d) => d.id === p.department_id)?.name} · {p.title === "lead" ? "Lead" : "Co-lead"}:
+                    </span>{" "}
+                    {nameOf.get(p.person_id)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : choices.length === 0 ? (
             <p className="mt-4 text-sm text-muted">Invite people on the Members page first.</p>
           ) : (
             <form action={savePositions} className="mt-5 space-y-5">
@@ -102,9 +134,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                   <Field label="Co-lead"><PersonSelect name="club:co_lead" value={holder("club", "co_lead")} /></Field>
                 </div>
               </div>
-              {(departments ?? []).filter((d) => d.is_active).map((d) => (
+              {slotDepartments.map((d) => (
                 <div key={d.id} className="rounded-2xl border border-line p-4">
-                  <p className="mb-3 font-medium">{d.name}</p>
+                  <p className="mb-3 font-medium">
+                    {d.name}
+                    {!d.is_active && <span className="ml-2 text-xs font-normal text-muted">(inactive department)</span>}
+                  </p>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Field label="Lead"><PersonSelect name={`dept:${d.id}:lead`} value={holder("department", "lead", d.id)} /></Field>
                     <Field label="Co-lead"><PersonSelect name={`dept:${d.id}:co_lead`} value={holder("department", "co_lead", d.id)} /></Field>
