@@ -13,5 +13,6 @@ export const navLinks = [
   { href: "/events", label: "Events", color: "bg-g-blue" },
   { href: "/projects", label: "Projects", color: "bg-g-red" },
   { href: "/team", label: "Team", color: "bg-g-yellow" },
-  { href: "/contact", label: "Contact", color: "bg-g-green" },
+  { href: "/blog", label: "Blog", color: "bg-g-green" },
+  { href: "/contact", label: "Contact", color: "bg-g-blue" },
 ] as const;

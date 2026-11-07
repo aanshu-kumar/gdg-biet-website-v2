@@ -2,8 +2,9 @@ import Image from "next/image";
 import { ArrowUpRight, CalendarDays, MapPin } from "lucide-react";
 import { Tag } from "@/components/Section";
 import type { GdgEvent } from "@/lib/types";
+import { TIME_ZONE } from "@/lib/time";
 
-const dateFormat = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric" });
+const dateFormat = new Intl.DateTimeFormat("en-IN", { timeZone: TIME_ZONE, day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
 
 export function EventCard({ event }: { event: GdgEvent }) {
   const link = event.status === "upcoming" ? event.registerUrl : event.resourcesUrl ?? event.registerUrl;

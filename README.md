@@ -43,18 +43,53 @@ For production (e.g. Vercel), set `SUPABASE_URL` and `SUPABASE_ANON_KEY` as envi
 server-only (no `NEXT_PUBLIC_` prefix) because all Supabase access happens on the server. The service-role key is only
 needed locally for `npm run seed` — never add it to the host.
 
+## Team platform (dashboard)
+
+Team members sign in with Google at `/login` and manage content at `/dashboard`. Access is invite-only.
+
+| Role       | Who                                                                     | Can                                                                                                  |
+| ---------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Admin**  | `people.is_admin`                                                       | Everything: sessions, departments, assigning club and department leads, inviting anyone, making admins |
+| **Lead**   | Holds a lead/co-lead position in the **current** session                | Publish events and blog posts in their scope; invite and manage members. Club leads cover every department; department leads cover their own |
+| **Member** | Everyone else                                                           | Edit their own profile; draft events and posts and submit them for review                             |
+
+- The public **Team** page shows only position holders (club lead and co-lead, plus each department's lead and
+  co-lead), using their profile photo, bio and links. Older years without positions show the original team list.
+- The public **Blog** (`/blog`) shows published posts. Posts are written in Markdown; raw HTML isn't rendered.
+- Every rule is enforced in Postgres with row-level security (`supabase/002_team_platform.sql`), not just in the UI.
+
+**Setup**
+
+1. Run `supabase/002_team_platform.sql` after `schema.sql`.
+2. Enable Google in Supabase → Authentication → Providers (OAuth client redirect URI:
+   `https://<project-ref>.supabase.co/auth/v1/callback`), and add `<your site>/auth/callback` to Authentication →
+   URL Configuration → Redirect URLs.
+3. Make yourself admin:
+   `insert into public.people (email, full_name, is_admin) values (lower('you@gmail.com'), 'Your Name', true);`
+4. Sign in, then in **Admin** create a session, add departments and assign leads. Invite people from **Members**.
+
+**Separate dashboard address (optional).** Set `SITE_URL` and `APP_URL` (e.g. `https://gdgcbiet-lucknow.vercel.app`
+and `https://gdgcbiet-lucknow-app.vercel.app`, both added as domains on the same Vercel project). The app address then
+serves only login and the dashboard, and the public site redirects `/login` and `/dashboard` there. Vercel previews and
+localhost keep serving everything from one address.
+
 ## Project structure
 
 ```
 src/
-  app/            routes: /, /events, /projects, /team, /contact, /hackathon
-  components/     Navbar, Footer, cards, Section primitives, ui/button
+  app/            public routes: /, /events, /projects, /team, /blog, /contact, /hackathon
+    dashboard/    team platform: profile, events, posts, members, admin
+    login/, auth/ Google sign-in, OAuth callback (claims invites), sign-out
+  components/     Navbar, Footer, cards, Section primitives, ui/button, dashboard/*
   data/           fallback JSON content (also the seed source)
   lib/
-    data.ts       server-side loaders: Supabase first, JSON fallback
-    supabase.ts   client + assetUrl() for storage paths
+    data.ts       public loaders: Supabase first, JSON fallback
+    auth.ts       signed-in viewer + role checks
+    supabase.ts   anonymous client + assetUrl() for storage paths
+    supabase-session.ts  per-user client (row-level security applies)
     site.ts       site name, links, nav
-supabase/schema.sql
+  middleware.ts   session refresh, /dashboard gate, site/app host split
+supabase/schema.sql, supabase/002_team_platform.sql
 scripts/seed-supabase.mjs
 ```
 
