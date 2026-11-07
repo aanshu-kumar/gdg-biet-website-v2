@@ -27,6 +27,17 @@ export async function middleware(request: NextRequest) {
   const siteHost = hostOf(process.env.SITE_URL);
   const appHost = hostOf(process.env.APP_URL);
 
+  // If a callback URL is missing from Supabase's Redirect URLs allow-list, Supabase
+  // silently sends the visitor to the Site URL root with ?code=… instead. Finish the
+  // sign-in on the callback rather than dropping it. The PKCE verifier cookie lives
+  // on the host that started sign-in: the app host when split, otherwise this one.
+  const code = request.nextUrl.searchParams.get("code");
+  if (pathname === "/" && code && /^[0-9a-f-]{36}$/i.test(code)) {
+    const callback = new URL("/auth/callback", appHost ? process.env.APP_URL : request.url);
+    callback.searchParams.set("code", code); // the post-login destination travels in the auth_next cookie
+    return NextResponse.redirect(callback);
+  }
+
   if (siteHost && appHost) {
     if (host === appHost && !isAppPath(pathname)) {
       // "/" on the app host is the dashboard; everything else belongs to the public site.
