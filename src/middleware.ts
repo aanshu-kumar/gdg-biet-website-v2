@@ -69,12 +69,12 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // getUser() revalidates the token with Supabase (unlike getSession()).
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getClaims() verifies the JWT signature locally against the project's public
+  // (ES256) signing keys, refreshing an expired session first — no round trip to
+  // Supabase Auth on every request, unlike getUser().
+  const { data } = await supabase.auth.getClaims();
 
-  if (!user && pathname.startsWith("/dashboard")) {
+  if (!data?.claims && pathname.startsWith("/dashboard")) {
     const login = request.nextUrl.clone();
     login.pathname = "/login";
     login.search = `?next=${encodeURIComponent(pathname)}`;
