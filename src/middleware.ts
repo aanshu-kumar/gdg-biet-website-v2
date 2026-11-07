@@ -34,8 +34,7 @@ export async function middleware(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
   if (pathname === "/" && code && /^[0-9a-f-]{36}$/i.test(code)) {
     const callback = new URL("/auth/callback", appHost ? process.env.APP_URL : request.url);
-    callback.searchParams.set("code", code);
-    callback.searchParams.set("next", "/dashboard");
+    callback.searchParams.set("code", code); // the post-login destination travels in the auth_next cookie
     return NextResponse.redirect(callback);
   }
 
