@@ -68,7 +68,12 @@ export function Footer() {
 
       <div className="border-t border-line">
         <div className="container flex flex-col gap-2 py-5 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} GDG On Campus BIET, Lucknow.</p>
+          <p>
+            © {new Date().getFullYear()} GDG On Campus BIET, Lucknow. ·{" "}
+            <Link href="/privacy" className="hover:text-primary">
+              Privacy
+            </Link>
+          </p>
           <p>
             GDG On Campus is a community program supported by Google for Developers. This chapter is run independently by
             students.
