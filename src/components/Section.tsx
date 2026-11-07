@@ -53,13 +53,13 @@ export function PageHeader({
   const bar = { blue: "bg-g-blue", red: "bg-g-red", yellow: "bg-g-yellow", green: "bg-g-green" }[accent];
   return (
     <div className="relative isolate border-b border-line bg-surface">
-      {/* Shapes sit in the empty right-hand side, clear of the max-w-2xl text. */}
+      {/* Shapes sit in the empty right-hand side, clear of the max-w-2xl text, and below the glass navbar. */}
       <ShapeLayer>
-        <Shape kind="circle" color={accent} className="right-[16%] top-[18%] w-24 animate-float" />
-        <Shape kind="hexagon" color="none" className="right-[6%] top-[10%] w-16 animate-spin-slow" />
+        <Shape kind="circle" color={accent} className="right-[16%] top-[32%] w-24 animate-float" />
+        <Shape kind="hexagon" color="none" className="right-[6%] top-[26%] w-16 animate-spin-slow" />
         <Shape kind="triangle" color="yellow" className="bottom-[12%] right-[26%] w-14 -rotate-12" />
       </ShapeLayer>
-      <div className="container py-14 md:py-20" data-reveal>
+      <div className="container pb-14 pt-28 md:pb-20 md:pt-36" data-reveal>
         <span className={cn("mb-6 block h-1.5 w-14 rounded-full", bar)} />
         <h1 className="font-display text-4xl font-medium tracking-tight md:text-6xl">{title}</h1>
         <p className="mt-4 max-w-2xl text-lg text-muted md:text-xl">{description}</p>
