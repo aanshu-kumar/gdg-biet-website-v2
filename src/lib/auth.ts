@@ -39,10 +39,12 @@ type MyContext = {
 export const getViewer = cache(async (): Promise<Viewer | null> => {
   if (!process.env.SUPABASE_URL) return null;
   const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  // Verified locally against the project's signing keys (no Auth round trip). Access
+  // itself is decided by my_context(), which the database evaluates per request, so a
+  // deactivated member loses access immediately.
+  const { data: claims } = await supabase.auth.getClaims();
+  const userId = claims?.claims.sub;
+  if (!userId) return null;
 
   const { data, error } = await supabase.rpc("my_context");
   const ctx = data as MyContext | null;
@@ -50,7 +52,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
 
   const isLead = ctx.is_club_lead || ctx.led_department_ids.length > 0;
   return {
-    userId: user.id,
+    userId,
     personId: ctx.person.id,
     email: ctx.person.email,
     name: ctx.person.full_name || ctx.person.email,

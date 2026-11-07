@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { CalendarDays, FileText, LayoutGrid, LogOut, Settings2, UserRound, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -34,6 +34,7 @@ export function DashboardNav({ isLead, isAdmin }: { isLead: boolean; isAdmin: bo
           >
             <Icon className="size-4" />
             {label}
+            <PendingDot />
           </Link>
         ))}
       <form action="/auth/signout" method="post" className="lg:mt-4 lg:border-t lg:border-line lg:pt-4">
@@ -47,4 +48,10 @@ export function DashboardNav({ isLead, isAdmin }: { isLead: boolean; isAdmin: bo
       </form>
     </nav>
   );
+}
+
+/** Pulses on the tab you just clicked while its page loads, so the click feels instant. */
+function PendingDot() {
+  const { pending } = useLinkStatus();
+  return <span aria-hidden className={cn("ml-auto size-1.5 rounded-full bg-primary transition-opacity", pending ? "animate-pulse opacity-100" : "opacity-0")} />;
 }
