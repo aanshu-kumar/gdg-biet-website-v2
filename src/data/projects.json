@@ -1,0 +1,12 @@
+[
+  {
+    "id": "p01",
+    "title": "GDG BIET Website",
+    "description": "The official website of GDG On Campus BIET, Lucknow — built with Next.js, Tailwind CSS and Supabase.",
+    "image": "/projects/gdgWebsitev1.0.png",
+    "tags": ["Next.js", "Tailwind CSS", "Supabase"],
+    "githubUrl": "https://github.com/aanshu-kumar/gdg-biet-website-v2",
+    "liveUrl": null,
+    "order": 1
+  }
+]

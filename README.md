@@ -1,96 +1,66 @@
-# GDGC-Biet-Website
+# GDG On Campus BIET — Website
 
-The official website for the Google Developer Group is on campus at BIET, Lucknow.
+The official website of Google Developer Groups On Campus, BIET Lucknow.
 
-This is a [Next.js](https://nextjs.org) project bootstrapped using [Tailwind](https://tailwindcss.com/) and [TypeScript](https://www.typescriptlang.org/).
+**Stack:** Next.js 15 (App Router) · TypeScript · Tailwind CSS · Supabase (content + image storage)
 
-**Technologies Used**:
-   - Add information about the tech stack:
-     - **Frontend**: Next.js, Tailwind CSS, TypeScript
-     - **Backend**: Not explicitly mentioned (assumed to be serverless or integrated with Next.js)
-     - **Tools**: ESLint for linting, Turbopack for development
+## Getting started
 
-**Getting Started**:
-   - Include steps to run the development server using different package managers (npm, yarn, pnpm, bun):
-     ```bash
-     npm install
-     npm run dev
-     ```
-     ```bash
-     # or
-     yarn dev
-     ```
-     ```bash
-     # or
-     pnpm dev
-     ```
-     ```bash
-     # or
-     bun dev
-     ```
-
-**Configuration Details**:
-   - Add information about the Next.js configuration (`next.config.ts`):
-     - Remote image patterns allowed from `res.cloudinary.com`.
-
-**Component Structure**:
-   - Mention the component aliases defined in `components.json`:
-     - `components`: "@/components"
-     - `utils`: "@/lib/utils"
-     - `ui`: "@/components/ui"
-     - `examples`: "@/components/examples"
-     - `blocks`: "@/components/blocks"
-
-**Dependencies**:
-   - List the main dependencies and devDependencies from `package.json`.
-
-## Configuration Details
-The Next.js configuration (`next.config.ts`) allows remote image patterns from `res.cloudinary.com`.
-
-## Component Structure
-The following component aliases are defined in `components.json`:
-- `components`: "@/components"
-- `utils`: "@/lib/utils"
-- `ui`: "@/components/ui"
-- `examples`: "@/components/examples"
-- `blocks`: "@/components/blocks"
-
-## Dependencies
-- Main dependencies include:
-  - `@emotion/react`
-  - `@emotion/styled`
-  - `@hookform/resolvers`
-  - `@mui/material`
-  - `@radix-ui/react-label`
-  - `@radix-ui/react-slot`
-  - `@tabler/icons-react`
-  - `class-variance-authority`
-  - `clsx`
-  - `embla-carousel-autoplay`
-  - `embla-carousel-react`
-  - `framer-motion`
-  - `lottie-react`
-  - `lucide-react`
-  - `next`
-  - `react`
-  - `react-dom`
-  - `react-hook-form`
-  - `react-icons`
-  - `react-responsive-carousel`
-  - `react-slick`
-  - `slick-carousel`
-  - `swiper`
-  - `tailwind-merge`
-  - `tailwindcss-animate`
-  - `zod`
-
-- Dev dependencies include:
-  - `@types/node`
-  - `@types/react`
-  - `@types/react-dom`
-  - `eslint`
-  - `eslint-config-next`
-  - `postcss`
-  - `tailwindcss`
-  - `typescript`
+```bash
+npm install
+npm run dev        # http://localhost:3000
 ```
+
+The site works out of the box with no configuration: content comes from `src/data/*.json` and images from `public/`.
+
+## Connecting Supabase
+
+1. Create a Supabase project.
+2. In **SQL Editor**, run [`supabase/schema.sql`](supabase/schema.sql). It creates the content tables, the
+   `contact_messages` table, row-level security policies and a public `assets` storage bucket.
+3. Copy `.env.example` to `.env.local` and fill in the values from **Project Settings → API**.
+4. Upload the current images and content:
+
+   ```bash
+   npm run seed
+   ```
+
+5. Restart `npm run dev`. Pages now read from Supabase and refresh every 5 minutes.
+
+After that, manage content from the Supabase dashboard:
+
+| What              | Where                                                                         |
+| ----------------- | ----------------------------------------------------------------------------- |
+| Events            | `events` table (`status` is `upcoming` or `past`)                             |
+| Team              | `team_members` table (`is_lead` puts someone in the highlighted lead card)    |
+| Projects          | `projects` table                                                              |
+| FAQs              | `faqs` table                                                                  |
+| Sponsors, stories | `sponsors`, `stories` tables                                                  |
+| Images            | **Storage → assets**. Put the object path (e.g. `Team/Rishu.jpg`) in `*_path` |
+| Contact messages  | `contact_messages` table (insert-only for visitors)                           |
+
+For production (e.g. Vercel), set `SUPABASE_URL` and `SUPABASE_ANON_KEY` as environment variables. They're
+server-only (no `NEXT_PUBLIC_` prefix) because all Supabase access happens on the server. The service-role key is only
+needed locally for `npm run seed` — never add it to the host.
+
+## Project structure
+
+```
+src/
+  app/            routes: /, /events, /projects, /team, /contact, /hackathon
+  components/     Navbar, Footer, cards, Section primitives, ui/button
+  data/           fallback JSON content (also the seed source)
+  lib/
+    data.ts       server-side loaders: Supabase first, JSON fallback
+    supabase.ts   client + assetUrl() for storage paths
+    site.ts       site name, links, nav
+supabase/schema.sql
+scripts/seed-supabase.mjs
+```
+
+## Design
+
+The design follows Google's visual language: Google blue, red, yellow and green on clean white or dark surfaces,
+Material-style pill buttons, rounded cards and generous spacing. Colour tokens live in `src/app/globals.css` and are
+exposed to Tailwind as `bg`, `surface`, `fg`, `muted`, `line`, `primary` and `g-{blue,red,yellow,green}`
+(plus `-tint` variants). Dark mode follows the system setting and can be toggled from the navbar.

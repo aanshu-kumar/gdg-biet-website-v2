@@ -1,178 +1,262 @@
-"use client"
 import Image from "next/image";
-import line from "@/assets/line1.svg";
-import line2 from "@/assets/line2.svg";
-import Storycard from "@/components/Storycard";
-import FAQs from "@/components/Faq";
-import Square from "@/assets/BlueSquare.svg";
-import Circle from "@/assets/GreenCircle.svg";
-import Triangle from "@/assets/Triangle.svg";
-import SquareGray from "@/assets/Square.svg";
-import Group from "@/assets/Group.svg";
-import MobileLogo from "@/assets/MobileLogo.svg";
-import arc from "@/assets/arc.svg";
-import hexagon from "@/assets/hexagon.svg";
-import EventCarousel from "@/components/EventCarousel";
-import Sponsers2 from "@/components/Sponsers";
-import Headerlogo from "@/components/HeaderLogo";
-export default function Home() {
+import Link from "next/link";
+import { ArrowRight, Code2, GraduationCap, Rocket, Users } from "lucide-react";
+import { EventCard } from "@/components/EventCard";
+import { FaqList } from "@/components/FaqList";
+import { EmptyState, Section, SectionHeader } from "@/components/Section";
+import { Shape, ShapeLayer } from "@/components/Shapes";
+import { TechMarquee } from "@/components/TechMarquee";
+import { Button } from "@/components/ui/button";
+import { getEvents, getFaqs, getSponsors, getStories, getTeam } from "@/lib/data";
+import { site } from "@/lib/site";
+
+export const revalidate = 300;
+
+const pillars = [
+  { icon: GraduationCap, title: "Learn", text: "Workshops, study jams and talks on Android, Cloud, AI, Web and more.", tint: "bg-g-blue-tint", fg: "text-g-blue" },
+  { icon: Code2, title: "Build", text: "Ship real projects with peers, from weekend hacks to open source.", tint: "bg-g-red-tint", fg: "text-g-red" },
+  { icon: Users, title: "Connect", text: "Meet developers, alumni and Googlers across the GDG network.", tint: "bg-g-yellow-tint", fg: "text-[#b06000] dark:text-g-yellow" },
+  { icon: Rocket, title: "Grow", text: "Speak, mentor and lead — and turn what you learn into opportunities.", tint: "bg-g-green-tint", fg: "text-g-green" },
+];
+
+export default async function Home() {
+  const [events, faqs, sponsors, stories, team] = await Promise.all([
+    getEvents(),
+    getFaqs(),
+    getSponsors(),
+    getStories(),
+    getTeam(),
+  ]);
+  const upcoming = events.filter((e) => e.status === "upcoming").slice(0, 3);
+  const latestYear = Math.max(...team.map((m) => m.year));
+  const currentTeam = team.filter((m) => m.year === latestYear);
+  const avatars = currentTeam.filter((m) => m.image).slice(0, 6);
+  const story = stories[0];
+
   return (
-    <div className="w-min-[1280px] mx-auto">
-      {/* Hero Section */}
-      <div className="lg:h-[80vh] mb-[200px] pt-20 relative">
-        <div>
-          <Image
-            src={Square}
-            alt="Element-Square"
-            className="md:block hidden lg:h-1/2 h-1/6 absolute lg:left-0 -left-16 top-[40vh] -z-0 fill-yellow-500"
-          />
-        </div>
-        <div>
-          <Image
-            src={Circle}
-            alt="Element-Square"
-            className="md:block lg:h-1/2 h-1/6 hidden absolute lg:right-0 -right-16 top-[50vh] -z-0"
-          />
-        </div>
-        <div className="absolute -top-4 lg:right-0 -right-10 -z-10 h-screen w-auto lg:block hidden">
-          <Image src={line} alt="line" />
-        </div>
-        <div className="absolute top-[800px] left-[450px] -z-10 h-[200vh] w-full lg:block hidden">
-          <Image src={line2} alt="line" />
-        </div>
-        {/* logo for smaller screen */}
-            <div className="lg:hidden w-full flex flex-col items-center justify-center text-center gap-2">
-              <Image src={MobileLogo} alt="GDG-Logo" />
-              <h1 className="text-6xl text-gray-600 dark:text-gray-500">
-                <strong className="text-red-500">G</strong>oogle <br/><strong className="text-blue-500">D</strong>eveloper <br/><strong className="text-green-500">G</strong>roups</h1>
-            </div>
-        <div className="w-full lg:flex justify-center mt-32 hidden">
-          <Headerlogo></Headerlogo>
-        </div>
-        <div className="w-full flex  justify-center mt-3 lg:mt-5">
-          <h3 className="text-gray-900 dark:text-gray-400 font-normal text-center lg:mt-5 lg:text-xl">
-            On Campus
-            <br />
-            <strong className="text-[#FBBC04] lg:mt-10 lg:text-2xl">
-              BIET
-            </strong>
-            , Lucknow
-          </h3>
-        </div>
-        <div className="flex justify-center lg:flex-row flex-col gap-7 mt-10 w-2/3 m-auto">
-          <button className="lg:p-2 p-4 font-semibold lg:px-8 text-lg border-2 border-black dark:border-gray-500 bg-[#4285F4] rounded-lg text-white ">
-            <a href="https://gdg.community.dev/gdg-on-campus-bansal-institute-of-engineering-technology-lucknow-india/">Join Chapter</a>
-          </button>
-          <button className="lg:p-2 p-4 font-semibold lg:px-8 text-lg border-2 border-black dark:border-gray-500 text-[#4285F4] rounded-lg" onClick={()=>{alert("There is no open Position right now.")}}>
-            Open Position
-          </button>
-        </div>
-      </div>
-      {/* Event Section */}
-      <div className="flex justify-center relative -z-10 flex-col h-auto lg:h-[80vh]">
-        <div className="flex gap-4 flex-row items-center justify-center">
-          <h3 className="text-5xl font-semibold text-center justify-center text-black dark:text-gray-500">
-            Events
-          </h3>
-          <div className="lg:h-40 w-40 lg:block hidden bg-yellow-500 rounded-full absolute lg:left-[410px] -z-10 border-black border-2"></div>
-          <Image
-            src={Triangle}
-            alt="Triangle"
-            className="absolute lg:block hidden right-5 -bottom-0 -z-0"
-          />
-          <Image
-            src={SquareGray}
-            alt="Triangle"
-            className="absolute left-5 -bottom-0 -z-10"
-          />
-        </div>
-        <EventCarousel></EventCarousel>
-      </div>
-
-      {/* About Section */}
-      <div className="grid sm:grid-cols-2 gap-5 w-11/12 m-auto">
-        <div className="w-full h-auto flex justify-center items-center">
-          <p className="lg:w-4/5 text-lg lg:text-2xl text-justify text-black dark:text-gray-500">
-            At BIET on campus GDG we are creating a dynamic, ever-growing
-            community of tech enthusiasts who are passionate about{" "}
-            <strong className="text-[#34A853]">technology</strong>,{" "}
-            <strong className="text-[#4285F4]">development</strong>, and the{" "}
-            <strong className="text-[#EA4335]">joy</strong> of continuous
-            learning.{" "}
+    <>
+      {/* Hero */}
+      <div className="relative isolate">
+        <ShapeLayer>
+          {/* Left-edge shape lives in the page margin, which is only wide enough from xl up. */}
+          <Shape kind="triangle" color="blue" className="bottom-[22%] left-[0.75%] hidden w-14 animate-float [--r:-12deg] xl:block" />
+          <Shape kind="arc" color="yellow" className="right-[1%] top-[8%] w-20 animate-spin-slow" />
+          <Shape kind="plus" color="green" className="bottom-[6%] right-[2%] w-10 animate-spin-slower" />
+        </ShapeLayer>
+      <section className="container grid items-center gap-12 py-16 md:py-24 lg:grid-cols-[1.15fr_1fr]">
+        <div data-reveal>
+          <p className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1 text-sm text-muted">
+            <span className="size-2 rounded-full bg-g-green" />
+            On Campus · BIET, Lucknow
           </p>
-        </div>
-        <div className="w-full h-auto">
-          <Image src={Group} alt="GDG-group-illustration" />
-        </div>
-      </div>
-      <div className="m-auto lg:mt-32 mt-10 sm:w-4/6 flex justify-center flex-col text-[#656C73]">
-        <p className=" pl-10 text-xl font-semibold text-black dark:text-gray-500 lg:text-left text-center">
-          We
-        </p>
-        <p className="lg:text-7xl md:text-5xl text-4xl text-center text-black dark:text-gray-500">
-          <strong className="text-[#34A853] bg-green-200 dark:bg-opacity-0 md:rounded-2xl rounded-xl px-3 dark:px-0 mx-2">
-            Learn
-          </strong>
-          ,
-          <strong className="text-[#EA4335] dark:bg-opacity-0 dark:px-1 bg-red-200 rounded-xl px-3">
-            Innovate
-          </strong>{" "}
-          &{" "}
-          <strong className="text-[#4285F4] dark:bg-opacity-0 dark:px-0 bg-blue-200 rounded-xl px-3 mx-1">
-            Create
-          </strong>
-        </p>
-        <p className="text-center m-3 text-[#FBBC04] text-2xl font-base">
-          while having fun.
-        </p>
-        <div>
-          <Image
-            src={arc}
-            alt="arc"
-            className="lg:right-28 right-0 hidden lg:block absolute h-16 lg:h-48 animate-spin duration-1000 ease-in-out repeat-infinite"
-          />
-        </div>
-        <div className="">
-          <Image
-            src={hexagon}
-            alt="arc"
-            className=" sm:left-10 absolute h-24 lg:h-48 duration-1000 ease-in-out"
-            //  Animation  need to trigger on scroll
-          />
-        </div>
-      </div>
-
-      {/* sponsors */}
-      <div className="flex justify-center -z-10 flex-col sm:mt-36 mt-24">
-        <h3 className="tracking-widest text-5xl font-semibold text-center relative z-10 text-black dark:text-gray-500">
-          Sponsors
-        </h3>
-        <div className="w-full h-auto">
-          <Sponsers2></Sponsers2>
-        </div>
-      </div>
-      {/* Story*/}
-
-      <div className="flex justify-center -z-10 flex-col h-[60vh] lg:h-[70vh] m-10 p-4">
-        <h3 className="tracking-widest text-5xl font-semibold text-center relative z-10 text-black dark:text-gray-500">
-          Stories
-        </h3>
-        <div className=" bg-blue-400 bg-opacity-60 backdrop-blur-xl p-10 lg:p-20 rounded-3xl mt-5 flex justify-center items-center">
-          <Storycard></Storycard>
-        </div>
-      </div>
-
-      {/* FAQs*/}
-      <div className="flex justify-center -z-10 flex-col sm:mt-36 mt-24">
-        <h3 className="tracking-widest text-5xl font-semibold text-center relative z-10 text-black dark:text-gray-500">
-          FAQs
-        </h3>
-        <div className="w-full mt-5 flex justify-center">
-          <div className="lg:m-20 p-4 bg-red-200 dark:bg-gray-900 dark:bg-opacity-50 backdrop-blur-lg lg:rounded-xl">
-            <FAQs />
+          <h1 className="mt-6 font-display text-5xl font-medium leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
+            <span className="text-g-blue">Learn</span>, <span className="text-g-red">build</span> and{" "}
+            <span className="text-g-green">grow</span> with Google technologies.
+          </h1>
+          <p className="mt-6 max-w-xl text-lg text-muted md:text-xl">{site.description}</p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button asChild size="lg">
+              <a href={site.chapterUrl} target="_blank" rel="noreferrer">
+                Join the chapter <ArrowRight />
+              </a>
+            </Button>
+            <Button asChild size="lg" variant="outlined">
+              <Link href="/events">Explore events</Link>
+            </Button>
           </div>
         </div>
+        <HeroArt />
+      </section>
       </div>
+
+      <TechMarquee />
+
+      {/* Pillars */}
+      <Section>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {pillars.map(({ icon: Icon, title, text, tint, fg }, i) => (
+            <div
+              key={title}
+              data-reveal
+              style={{ "--reveal-delay": `${i * 90}ms` } as React.CSSProperties}
+              className={`group rounded-3xl p-6 transition-transform duration-300 hover:-translate-y-1 ${tint}`}
+            >
+              <Icon className={`size-7 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110 ${fg}`} />
+              <h3 className="mt-6 font-display text-xl font-medium">{title}</h3>
+              <p className="mt-2 text-muted">{text}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* Events */}
+      <div className="bg-surface">
+        <Section>
+          <SectionHeader
+            eyebrow="Events"
+            title="What's coming up"
+            description="Hands-on sessions run by students, for students. Everyone is welcome — no experience needed."
+            action={
+              <Button asChild variant="text">
+                <Link href="/events">
+                  All events <ArrowRight />
+                </Link>
+              </Button>
+            }
+          />
+          {upcoming.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {upcoming.map((e) => (
+                <EventCard key={e.id} event={e} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              title="No events scheduled right now"
+              description="Join the chapter to get notified as soon as the next one is announced."
+            />
+          )}
+        </Section>
+      </div>
+
+      {/* Team teaser + story */}
+      <Section>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div data-reveal className="flex flex-col justify-between rounded-4xl border border-line p-8 md:p-10">
+            <div>
+              <p className="eyebrow">The team</p>
+              <h2 className="mt-3 font-display text-3xl font-medium tracking-tight">Run by students who love to build</h2>
+              <p className="mt-3 text-muted">
+                {currentTeam.length} organizers across tech, design, content, events and outreach for {latestYear}–{String(latestYear + 1).slice(2)}.
+              </p>
+            </div>
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-6">
+              <div className="flex -space-x-3">
+                {avatars.map((m) => (
+                  <div key={m.id} className="relative size-12 overflow-hidden rounded-full ring-2 ring-bg">
+                    <Image src={m.image!} alt={m.name} fill sizes="48px" className="object-cover" />
+                  </div>
+                ))}
+              </div>
+              <Button asChild variant="tonal">
+                <Link href="/team">
+                  Meet the team <ArrowRight />
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          {story && (
+            <figure
+              data-reveal
+              style={{ "--reveal-delay": "120ms" } as React.CSSProperties}
+              className="relative isolate flex flex-col justify-between overflow-hidden rounded-4xl bg-g-blue p-8 text-white md:p-10"
+            >
+              <Shape kind="circle" color="none" className="-right-10 -top-10 -z-10 w-40 stroke-white/40" />
+              <blockquote className="font-display text-2xl font-medium leading-snug md:text-3xl">“{story.quote}”</blockquote>
+              <figcaption className="mt-8 flex items-center gap-4">
+                {story.image && (
+                  <div className="relative size-12 overflow-hidden rounded-full ring-2 ring-white/60">
+                    <Image src={story.image} alt="" fill sizes="48px" className="object-cover" />
+                  </div>
+                )}
+                <div>
+                  <p className="font-medium">{story.name}</p>
+                  {story.role && <p className="text-sm text-white/80">{story.role}</p>}
+                </div>
+              </figcaption>
+            </figure>
+          )}
+        </div>
+      </Section>
+
+      {/* Sponsors */}
+      {sponsors.length > 0 && (
+        <Section className="pt-0 md:pt-0">
+          <div data-reveal className="rounded-4xl border border-line px-6 py-10 text-center md:px-10">
+            <p className="eyebrow">Supported by</p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-x-12 gap-y-6">
+              {sponsors.map((s) => {
+                const logo = <Image src={s.logo} alt={s.name} width={180} height={56} className="h-12 w-auto object-contain dark:brightness-0 dark:invert" />;
+                return s.url ? (
+                  <a key={s.id} href={s.url} target="_blank" rel="noreferrer" className="opacity-80 transition-opacity hover:opacity-100">
+                    {logo}
+                  </a>
+                ) : (
+                  <div key={s.id}>{logo}</div>
+                );
+              })}
+            </div>
+            <p className="mt-8 text-sm text-muted">
+              Want to support student developers?{" "}
+              <Link href="/contact" className="font-medium text-primary hover:underline">
+                Become a sponsor
+              </Link>
+            </p>
+          </div>
+        </Section>
+      )}
+
+      {/* FAQ */}
+      <Section className="pt-0 md:pt-0">
+        <div className="grid gap-10 lg:grid-cols-[1fr_1.6fr]">
+          <div data-reveal>
+            <p className="eyebrow">FAQ</p>
+            <h2 className="mt-3 font-display text-3xl font-medium tracking-tight md:text-4xl">Questions, answered</h2>
+            <p className="mt-3 text-muted">
+              Can&apos;t find what you&apos;re looking for?{" "}
+              <Link href="/contact" className="font-medium text-primary hover:underline">
+                Get in touch
+              </Link>
+              .
+            </p>
+          </div>
+          <div data-reveal style={{ "--reveal-delay": "120ms" } as React.CSSProperties}>
+            <FaqList faqs={faqs} />
+          </div>
+        </div>
+      </Section>
+
+      {/* CTA */}
+      <Section className="pt-0 md:pt-0">
+        <div data-reveal className="relative isolate overflow-hidden rounded-4xl bg-surface-2 px-6 py-14 text-center md:px-16">
+          <ShapeLayer>
+            <Shape kind="circle" color="blue" className="-left-6 -top-6 w-28" />
+            <Shape kind="square" color="red" className="bottom-6 left-[8%] w-12 rotate-12" />
+            <Shape kind="triangle" color="yellow" className="right-[7%] top-8 w-16 animate-float [--r:20deg]" />
+            <Shape kind="arc" color="green" className="-bottom-4 -right-4 w-28 animate-spin-slower" />
+          </ShapeLayer>
+          <div aria-hidden className="absolute inset-x-0 top-0 flex h-1.5">
+            <span className="flex-1 bg-g-blue" />
+            <span className="flex-1 bg-g-red" />
+            <span className="flex-1 bg-g-yellow" />
+            <span className="flex-1 bg-g-green" />
+          </div>
+          <h2 className="font-display text-3xl font-medium tracking-tight md:text-4xl">Ready to start building?</h2>
+          <p className="mx-auto mt-3 max-w-xl text-muted">
+            Join the chapter on the GDG community platform to RSVP for events and stay in the loop.
+          </p>
+          <Button asChild size="lg" className="mt-8">
+            <a href={site.chapterUrl} target="_blank" rel="noreferrer">
+              Join GDG On Campus BIET <ArrowRight />
+            </a>
+          </Button>
+        </div>
+      </Section>
+    </>
+  );
+}
+
+/** Google-colour shape composition; sits inside the grid, so it never overlaps content. Static on purpose. */
+function HeroArt() {
+  return (
+    <div aria-hidden className="mx-auto grid aspect-square w-full max-w-[16rem] grid-cols-2 grid-rows-2 gap-3 sm:max-w-sm sm:gap-4 lg:max-w-none">
+      <div className="rounded-full bg-g-blue" />
+      <div className="rounded-[2.5rem] rounded-tr-full bg-g-red" />
+      <div className="grid place-items-center rounded-[2.5rem] bg-g-yellow">
+        <span className="font-display text-6xl font-semibold text-[#202124] md:text-7xl">{"</>"}</span>
+      </div>
+      <div className="rounded-full rounded-bl-[2.5rem] bg-g-green" />
     </div>
   );
 }

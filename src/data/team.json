@@ -1,0 +1,233 @@
+[
+  {
+    "id": "m01",
+    "name": "Rishu Kumar",
+    "role": "Lead",
+    "year": 2023,
+    "image": "/Team/Rishu.jpg",
+    "linkedin": "https://www.linkedin.com/in/rishuku01",
+    "twitter": "https://x.com/rishuku01",
+    "lead": true,
+    "order": 0
+  },
+  {
+    "id": "m02",
+    "name": "Amar Deep Rao",
+    "role": "Organizer",
+    "year": 2024,
+    "image": "/Team/Amar.jpg",
+    "linkedin": "https://www.linkedin.com/in/amardeep16/",
+    "twitter": "https://x.com/AmardeepRao15",
+    "lead": true,
+    "order": 0
+  },
+  {
+    "id": "m03",
+    "name": "Anshu Kumar",
+    "role": "Co-lead",
+    "year": 2023,
+    "image": "/Team/rakon.jpg",
+    "linkedin": "https://www.linkedin.com/in/anshukumar01/",
+    "twitter": "https://x.com/anshu__kr",
+    "lead": false,
+    "order": 2
+  },
+  {
+    "id": "m04",
+    "name": "Rashi Chandra",
+    "role": "Human Resource",
+    "year": 2023,
+    "image": "/Team/Rashi.jpg",
+    "linkedin": "https://www.linkedin.com/in/anshukumar01/",
+    "twitter": null,
+    "lead": false,
+    "order": 3
+  },
+  {
+    "id": "m05",
+    "name": "Vishal Gupta",
+    "role": "Tech-lead",
+    "year": 2023,
+    "image": "/Team/Vishal.jpeg",
+    "linkedin": "http://linkedin.com/in/vishusahu09/",
+    "twitter": "https://x.com/VishalG54298320",
+    "lead": false,
+    "order": 4
+  },
+  {
+    "id": "m06",
+    "name": "Shivakant Shukla",
+    "role": "Tech Co-lead",
+    "year": 2023,
+    "image": "/Team/ShivakantBhaia.jpg",
+    "linkedin": "https://www.linkedin.com/in/shivakant-shukla-4b3987241",
+    "twitter": "https://x.com/codetech_shivam",
+    "lead": false,
+    "order": 5
+  },
+  {
+    "id": "m07",
+    "name": "Rehnuma Rahman",
+    "role": "Content Writing-Lead",
+    "year": 2023,
+    "image": "/Team/rahnuma.jpg",
+    "linkedin": "https://www.linkedin.com/in/rahnuma-rahman-008034223/",
+    "twitter": "https://x.com/rahnuma_r_",
+    "lead": false,
+    "order": 6
+  },
+  {
+    "id": "m08",
+    "name": "Ankita Srivastava",
+    "role": "Social Media-Lead",
+    "year": 2023,
+    "image": "/Team/Ankita.jpeg",
+    "linkedin": "https://www.linkedin.com/in/ankita-srivastava-a5a7a3241/",
+    "twitter": null,
+    "lead": false,
+    "order": 7
+  },
+  {
+    "id": "m09",
+    "name": "Prince Upadhayay",
+    "role": "Marketing-Lead",
+    "year": 2023,
+    "image": "/Team/Prince.png",
+    "linkedin": "https://www.linkedin.com/in/prince-upadhyay-024415221",
+    "twitter": "https://x.com/PrinceU72211892",
+    "lead": false,
+    "order": 8
+  },
+  {
+    "id": "m10",
+    "name": "Apoorv Kumar",
+    "role": "Event Management-Lead",
+    "year": 2023,
+    "image": "/Team/apoorv.jpg",
+    "linkedin": "https://www.linkedin.com/in/apoorv-kumar-0b8707253",
+    "twitter": null,
+    "lead": false,
+    "order": 9
+  },
+  {
+    "id": "m11",
+    "name": "Anuj Gupta",
+    "role": "Event Management Co-Lead",
+    "year": 2023,
+    "image": "/Team/Anuj.jpeg",
+    "linkedin": "https://www.linkedin.com/in/99anujgupta",
+    "twitter": null,
+    "lead": false,
+    "order": 10
+  },
+  {
+    "id": "m12",
+    "name": "Humaira Hashmi",
+    "role": "Co-Organizer",
+    "year": 2024,
+    "image": "/Team/Humaira.jpg",
+    "linkedin": "https://www.linkedin.com/in/humaira-hashmi03/",
+    "twitter": "https://x.com/Has65384Hashmi",
+    "lead": false,
+    "order": 11
+  },
+  {
+    "id": "m13",
+    "name": "Nandini Singh",
+    "role": "HR Associate",
+    "year": 2024,
+    "image": "/Team/Nandini.jpeg",
+    "linkedin": "https://www.linkedin.com/in/nandini-singh-0238a22a7",
+    "twitter": "https://x.com/Singh_Nandini05",
+    "lead": false,
+    "order": 12
+  },
+  {
+    "id": "m14",
+    "name": "Mohd. Kaif",
+    "role": "Web Developer Organizer",
+    "year": 2024,
+    "image": "/Team/Kaif.jpg",
+    "linkedin": "https://www.linkedin.com/in/kaif9999",
+    "twitter": "https://x.com/kaif9998",
+    "lead": false,
+    "order": 13
+  },
+  {
+    "id": "m15",
+    "name": "Katyayani Mishra",
+    "role": "Web developer Co-Organizer",
+    "year": 2024,
+    "image": "/Team/Katayani.jpg",
+    "linkedin": "https://www.linkedin.com/in/katyayanim12",
+    "twitter": null,
+    "lead": false,
+    "order": 14
+  },
+  {
+    "id": "m16",
+    "name": "Aryan Gupta",
+    "role": "AI/Ml Organizer",
+    "year": 2024,
+    "image": "/Team/Aryan.jpg",
+    "linkedin": "https://www.linkedin.com/in/aryan-gupta-820164262",
+    "twitter": null,
+    "lead": false,
+    "order": 15
+  },
+  {
+    "id": "m17",
+    "name": "Abhishek Verma",
+    "role": "AI/ML Co-Organizer",
+    "year": 2024,
+    "image": "/Team/abhishek varma.jpeg",
+    "linkedin": "https://www.linkedin.com/in/abhishek-verma-jnv",
+    "twitter": "https://x.com/thor_x_me",
+    "lead": false,
+    "order": 16
+  },
+  {
+    "id": "m18",
+    "name": "Nagesh Tripathi",
+    "role": "Data Forge Organizer",
+    "year": 2024,
+    "image": "/Team/nagesh.jpg",
+    "linkedin": "https://www.linkedin.com/in/nagesh-tripathi/",
+    "twitter": null,
+    "lead": false,
+    "order": 17
+  },
+  {
+    "id": "m19",
+    "name": "Vikas Deep Sharma",
+    "role": "Social Media Organizer",
+    "year": 2024,
+    "image": "/Team/vikas.jpg",
+    "linkedin": "https://www.linkedin.com/in/vikas-deep-sharma-619b91274/",
+    "twitter": "https://x.com/deep_shar24",
+    "lead": false,
+    "order": 18
+  },
+  {
+    "id": "m20",
+    "name": "Kavyshree Jaiswal",
+    "role": "Event Management Organizer",
+    "year": 2024,
+    "image": "/Team/kavya.jpg",
+    "linkedin": "https://www.linkedin.com/in/kavyshree-jaiswal-065078282",
+    "twitter": null,
+    "lead": false,
+    "order": 19
+  },
+  {
+    "id": "m21",
+    "name": "Utkarsh Upadhayay",
+    "role": "Event Management Co-Organizer",
+    "year": 2024,
+    "image": "/Team/utkarsh.jpg",
+    "linkedin": "https://www.linkedin.com/in/utkarsh2005",
+    "twitter": "https://x.com/UTKARSHUPA88883",
+    "lead": false,
+    "order": 20
+  }
+]

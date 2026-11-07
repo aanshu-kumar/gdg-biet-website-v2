@@ -1,33 +1,45 @@
-"use client"
-
-import React from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
+import { FaGithub } from "react-icons/fa";
+import { Tag } from "@/components/Section";
+import { Button } from "@/components/ui/button";
+import type { Project } from "@/lib/types";
 
-type EventCardProps = {
-  title: string;
-  description: string;
-  idx: number;
-  image: string;
-  Github:string;
-  liveLink:string;
-
-};
-
-const ProjectCard: React.FC<EventCardProps> = ({title, description,image,idx,Github,liveLink}) => {
+export function ProjectCard({ project }: { project: Project }) {
   return (
-    <div key={idx} className="w-full flex lg:flex-row flex-col  rounded-lg dark:bg-opacity-0">
-        <Image className="hover:scale-125 duration-300" width={500} height={500} src={image} alt=""></Image>
-        <div className=" h-full m-auto lg:ml-4 p-2 lg:bg-slate-300 dark:bg-opacity-20 rounded-lg" >
-        <h2 className="lg:text-2xl font-mono font-bold p-4 text-center lg:text-left">{title}</h2>
-        <p className="lg:text-xl font-mono font-medium lg:px-4"><strong>Description:</strong> {description}</p>
-        <div className="flex flex-row justify-evenly px-4 mt-4">
-            <button className="hover:bg-blue-500 lg:bg-transparent bg-blue-500 dark:text-white lg:text-black text-white font-bold lg:text-xl text-base rounded-lg lg:p-4 p-2 px-4 duration-200"><Link href={Github}>Github</Link></button>
-            <button className="hover:bg-blue-500 lg:bg-transparent bg-blue-500 dark:text-white lg:text-black text-white font-bold lg:text-xl text-base rounded-lg lg:p-4 p-2 px-4 duration-200"><Link href={liveLink}>Visit the website</Link></button>
+    <article data-reveal className="group grid overflow-hidden rounded-3xl border border-line bg-bg transition-shadow duration-300 hover:shadow-lift md:grid-cols-[1.1fr_1fr]">
+      <div className="relative aspect-[16/10] overflow-hidden bg-surface-2 md:aspect-auto md:min-h-72">
+        {project.image && (
+          <Image src={project.image} alt={`${project.title} screenshot`} fill sizes="(min-width: 768px) 600px, 100vw" className="object-cover object-top transition-transform duration-700 group-hover:scale-105" />
+        )}
+      </div>
+      <div className="flex flex-col gap-4 p-6 md:p-8">
+        <h3 className="font-display text-2xl font-medium">{project.title}</h3>
+        <p className="text-muted">{project.description}</p>
+        {project.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {project.tags.map((t) => (
+              <Tag key={t}>{t}</Tag>
+            ))}
+          </div>
+        )}
+        <div className="mt-auto flex flex-wrap gap-2 pt-2">
+          {project.githubUrl && (
+            <Button asChild variant="outlined">
+              <a href={project.githubUrl} target="_blank" rel="noreferrer">
+                <FaGithub /> Source
+              </a>
+            </Button>
+          )}
+          {project.liveUrl && (
+            <Button asChild>
+              <a href={project.liveUrl} target="_blank" rel="noreferrer">
+                Visit <ArrowUpRight />
+              </a>
+            </Button>
+          )}
         </div>
-        </div>
-    </div>
+      </div>
+    </article>
   );
 }
-
-export default ProjectCard;
