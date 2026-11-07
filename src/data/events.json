@@ -1,0 +1,14 @@
+[
+  {
+    "id": "e01",
+    "title": "Build with AI",
+    "description": "Hands-on sessions on building apps with Google's Gemini models and AI tooling. Details will be announced on our chapter page.",
+    "date": null,
+    "location": "BIET, Lucknow",
+    "status": "upcoming",
+    "image": "/BuildWithAI.png",
+    "tags": ["AI", "Gemini"],
+    "registerUrl": "https://gdg.community.dev/gdg-on-campus-bansal-institute-of-engineering-technology-lucknow-india/",
+    "resourcesUrl": null
+  }
+]
