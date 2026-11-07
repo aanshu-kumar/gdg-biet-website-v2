@@ -39,8 +39,9 @@ After that, manage content from the Supabase dashboard:
 | Images            | **Storage → assets**. Put the object path (e.g. `Team/Rishu.jpg`) in `*_path` |
 | Contact messages  | `contact_messages` table (insert-only for visitors)                           |
 
-For production (e.g. Vercel), set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` as environment
-variables. The service-role key is only needed locally for `npm run seed`.
+For production (e.g. Vercel), set `SUPABASE_URL` and `SUPABASE_ANON_KEY` as environment variables. They're
+server-only (no `NEXT_PUBLIC_` prefix) because all Supabase access happens on the server. The service-role key is only
+needed locally for `npm run seed` — never add it to the host.
 
 ## Project structure
 

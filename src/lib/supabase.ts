@@ -1,7 +1,10 @@
+import "server-only";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Server-only on purpose: data loading and the contact action both run on the
+// server, so the browser never needs these (no NEXT_PUBLIC_ prefix).
+export const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
 /** Public bucket that holds every image the site renders. */
 export const ASSET_BUCKET = "assets";
