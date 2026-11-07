@@ -8,10 +8,14 @@ export type PublishState = "draft" | "pending" | "published";
 export type Department = { id: string; name: string; description: string | null; sort_order: number; is_active: boolean };
 export type PersonRow = {
   id: string;
-  email: string;
+  /** Null for alumni added as profile-only (they never sign in). */
+  email: string | null;
   user_id: string | null;
   full_name: string;
   is_admin: boolean;
+  is_owner: boolean;
+  /** Imported from the original website; only the owner can edit. */
+  is_legacy: boolean;
   department_id: string | null;
   avatar_path: string | null;
   bio: string | null;
@@ -97,4 +101,46 @@ export function friendlyError(message: string): string {
   if (/duplicate key.*departments_name_key/.test(message)) return "A department with that name already exists.";
   if (/duplicate key.*start_year/.test(message)) return "That session already exists.";
   return message;
+}
+
+/**
+ * Validates and saves the shared profile fields (name, bio, skills, links, photo)
+ * for one person, as the signed-in user — RLS and the people_guard trigger decide
+ * whether they may. New photos go under `folder`; a replaced photo from that same
+ * folder is deleted. Returns an error to show, or undefined on success.
+ */
+export async function saveProfileFields(
+  supabase: SupabaseClient,
+  personId: string,
+  form: FormData,
+  folder: string,
+): Promise<{ error: string } | undefined> {
+  const fullName = text(form, "full_name", 120);
+  if (!fullName) return { error: "Please enter a name." };
+
+  const links = { linkedin_url: url(form, "linkedin_url"), twitter_url: url(form, "twitter_url"), github_url: url(form, "github_url"), website_url: url(form, "website_url") };
+  for (const r of Object.values(links)) if ("error" in r) return { error: r.error };
+
+  const upload = await uploadImage(supabase, form.get("avatar"), folder);
+  if ("error" in upload) return { error: upload.error };
+
+  const { error, count } = await supabase
+    .from("people")
+    .update(
+      {
+        full_name: fullName,
+        bio: optional(form, "bio", 600),
+        skills: list(form, "skills"),
+        ...Object.fromEntries(Object.entries(links).map(([k, r]) => [k, "value" in r ? r.value : null])),
+        ...(upload.key ? { avatar_path: upload.key } : {}),
+      },
+      { count: "exact" },
+    )
+    .eq("id", personId);
+  if (error) return { error: friendlyError(error.message) };
+  if (!count) return { error: "You don't have permission to edit this profile." };
+
+  const previous = text(form, "previous_avatar");
+  if (upload.key && previous.startsWith(`${folder}/`)) await supabase.storage.from("assets").remove([previous]);
+  return undefined;
 }

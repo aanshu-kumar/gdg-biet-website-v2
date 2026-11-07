@@ -1,4 +1,5 @@
-import { UserPlus } from "lucide-react";
+import Link from "next/link";
+import { Pencil, UserPlus } from "lucide-react";
 import { Card, Field, Flash, PageTitle, RoleBadge, inputClass } from "@/components/dashboard/ui";
 import { ConfirmButton, SubmitButton } from "@/components/dashboard/SubmitButton";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,9 @@ type Position = { person_id: string; scope: "club" | "department"; title: "lead"
 
 /** Mirrors the database's can_manage_person() for UI hints; the database enforces it. */
 const canManage = (v: Viewer, p: PersonRow) =>
-  p.id !== v.personId && (v.isAdmin || (!p.is_admin && (v.isClubLead || (p.department_id !== null && v.ledDepartmentIds.includes(p.department_id)))));
+  p.id !== v.personId &&
+  (!p.is_legacy || v.isOwner) &&
+  (v.isAdmin || (!p.is_admin && (v.isClubLead || (p.department_id !== null && v.ledDepartmentIds.includes(p.department_id)))));
 
 export default async function MembersPage({ searchParams }: { searchParams: Promise<{ dept?: string; ok?: string; error?: string }> }) {
   const viewer = await requireLead();
@@ -34,7 +37,10 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
 
   // Department leads start on their own department(s); everyone can switch the filter.
   const filter = dept ?? (seesAll ? "all" : viewer.ledDepartmentIds[0] ?? "all");
-  const shown = (people ?? []).filter((p) => filter === "all" || (filter === "none" ? !p.department_id : p.department_id === filter));
+  // Alumni imported from the original site get their own filter so the active team stays readable.
+  const shown = (people ?? []).filter((p) =>
+    filter === "alumni" ? p.is_legacy : !p.is_legacy && (filter === "all" || (filter === "none" ? !p.department_id : p.department_id === filter)),
+  );
 
   const positionLabel = (p: Position) =>
     `${p.title === "lead" ? "Lead" : "Co-lead"}${p.scope === "club" ? " · Club" : ` · ${deptName.get(p.department_id!) ?? ""}`}`;
@@ -55,8 +61,8 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
           <p className="text-sm text-muted">You don&apos;t lead an active department in the current session.</p>
         ) : (
           <form action={invitePerson} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_auto] lg:items-end">
-            <Field label="Google account email">
-              <input name="email" type="email" required placeholder="name@gmail.com" className={inputClass} />
+            <Field label="Google account email" hint={viewer.isAdmin ? "Leave empty to add a past member as a profile only." : undefined}>
+              <input name="email" type="email" required={!viewer.isAdmin} placeholder="name@gmail.com" className={inputClass} />
             </Field>
             <Field label="Name">
               <input name="full_name" maxLength={120} className={inputClass} />
@@ -82,7 +88,12 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
       </Card>
 
       <div className="mb-4 flex flex-wrap gap-2">
-        {[{ id: "all", name: "Everyone" }, ...(departments ?? []), { id: "none", name: "No department" }].map((d) => (
+        {[
+          { id: "all", name: "Everyone" },
+          ...(departments ?? []).filter((d) => d.is_active),
+          { id: "none", name: "No department" },
+          ...(viewer.isAdmin ? [{ id: "alumni", name: "Alumni" }] : []),
+        ].map((d) => (
           <a
             key={d.id}
             href={`/dashboard/members?dept=${d.id}`}
@@ -108,16 +119,23 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
                 <p className="flex flex-wrap items-center gap-2 font-medium">
                   {p.full_name || p.email}
                   <RoleBadge role={role} />
-                  {!p.user_id && <span className="rounded-full bg-g-yellow-tint px-2.5 py-0.5 text-xs">Invite pending</span>}
+                  {p.is_legacy && <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs">Alumni</span>}
+                  {!p.user_id && p.email && <span className="rounded-full bg-g-yellow-tint px-2.5 py-0.5 text-xs">Invite pending</span>}
+                  {!p.email && !p.is_legacy && <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs">Profile only</span>}
                   {!p.is_active && <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs">Deactivated</span>}
                 </p>
                 <p className="truncate text-sm text-muted">
-                  {[p.email, p.department_id ? deptName.get(p.department_id) : "No department", pos && positionLabel(pos)].filter(Boolean).join(" · ")}
+                  {[p.email ?? "No email", p.department_id ? deptName.get(p.department_id) : "No department", pos && positionLabel(pos)].filter(Boolean).join(" · ")}
                 </p>
               </div>
 
               {manage && (
                 <div className="flex flex-wrap items-center gap-2">
+                  <Button asChild size="sm" variant="text">
+                    <Link href={`/dashboard/members/${p.id}`}>
+                      <Pencil /> Edit profile
+                    </Link>
+                  </Button>
                   {seesAll && (
                     <form action={updatePerson} className="flex items-center gap-2">
                       <input type="hidden" name="id" value={p.id} />
@@ -155,8 +173,13 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
                   ) : (
                     <form action={removeInvite}>
                       <input type="hidden" name="id" value={p.id} />
-                      <ConfirmButton size="sm" variant="text" className="text-g-red" message={`Cancel the invite for ${p.email}?`}>
-                        Cancel invite
+                      <ConfirmButton
+                        size="sm"
+                        variant="text"
+                        className="text-g-red"
+                        message={p.email ? `Cancel the invite for ${p.email}?` : `Remove ${p.full_name}'s profile?`}
+                      >
+                        {p.email ? "Cancel invite" : "Remove"}
                       </ConfirmButton>
                     </form>
                   )}
